@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --card-bg: rgba(15, 23, 42, 0.95);
+      --accent: #22d3ee;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --accent-2: #a855f7;
+      --danger: #fb7185;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: rgba(148, 163, 184, 0.3);
+      --shadow-soft: 0 24px 80px rgba(15, 23, 42, 0.85);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --transition-fast: 150ms ease-out;
+      --transition-slow: 280ms ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.14), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.16), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(244, 114, 182, 0.1), transparent 60%),
+        #020617;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.16), transparent 60%),
+                  radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.14), transparent 60%),
+                  rgba(15, 23, 42, 0.8);
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: var(--shadow-soft);
+      padding: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inner {
+      border-radius: 26px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+      padding: 24px 24px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(0, 1.4fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .inner {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glow-orbit {
+      position: absolute;
+      inset: -40%;
+      opacity: 0.32;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.5), transparent 52%),
+        radial-gradient(circle at 90% 100%, rgba(244, 114, 182, 0.4), transparent 55%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .side {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .pill {
+      align-self: flex-start;
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      background: linear-gradient(120deg, rgba(34, 211, 238, 0.14), rgba(129, 140, 248, 0.05));
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.25);
+    }
+
+    .title-block h1 {
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    .title-block span {
+      background: linear-gradient(120deg, #22d3ee, #a855f7, #f97316);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .title-sub {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 320px;
+    }
+
+    .auth-card {
+      margin-top: 6px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 0 0, rgba(34, 211, 238, 0.12), transparent 55%),
+                  rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 16px 16px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-tabs {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      margin-bottom: 12px;
+    }
+
+    .auth-tab {
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition-slow), color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(129, 140, 248, 0.35));
+      color: #e5e7eb;
+      transform: translateY(-0.5px);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.75);
+    }
+
+    .auth-tab-indicator {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background: radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.25), transparent 60%);
+      opacity: 0.5;
+      mix-blend-mode: screen;
+    }
+
+    .auth-form {
+      display: none;
+      animation: fadeInUp var(--transition-slow);
+    }
+    .auth-form.active {
+      display: block;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.95), #020617);
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .input:focus {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6), 0 0 0 8px rgba(8, 47, 73, 0.9);
+      transform: translateY(-0.5px);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .btn-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #22d3ee, #a855f7);
+      color: #0b1120;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 14px 40px rgba(22, 163, 255, 0.45);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 20px 50px rgba(59, 130, 246, 0.55);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 26px rgba(30, 64, 175, 0.65);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), #020617);
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+      transform: translateY(-0.5px);
+    }
+
+    .status-badge {
+      margin-top: 8px;
+      font-size: 11px;
+      padding: 6px 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(21, 94, 117, 0.7), rgba(15, 23, 42, 0.96));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .status-badge span {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.25);
+    }
+
+    .status-dot.disconnected {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
+    }
+
+    .status-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), #020617);
+    }
+
+    .main {
+      position: relative;
+      z-index: 1;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), #020617);
+      border-radius: 22px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 16px 16px 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 320px;
+      gap: 10px;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .main-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .main-title span {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(8, 47, 73, 0.9), rgba(15, 23, 42, 0.98));
+      font-size: 11px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.3);
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge-soft {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #e0f2fe;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-soft span {
+      font-weight: 500;
+    }
+
+    .tab-strip {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      padding-bottom: 4px;
+      overflow-x: auto;
+    }
+
+    .tab-strip button {
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .tab-strip button.active {
+      background: radial-gradient(circle at 0 0, rgba(34, 211, 238, 0.25), rgba(129, 140, 248, 0.3));
+      color: #e5e7eb;
+      transform: translateY(-0.5px);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.85);
+    }
+
+    .content {
+      flex: 1;
+      margin-top: 8px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 10px;
+      display: none;
+      overflow: hidden;
+    }
+
+    .content.active {
+      display: block;
+      animation: fadeInUp var(--transition-slow);
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .content-header h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    .content-header span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .content-body {
+      border-radius: 10px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+      border: 1px dashed rgba(55, 65, 81, 0.9);
+      padding: 8px;
+      max-height: 240px;
+      overflow: auto;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .jobs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .job-card {
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.95);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+      padding: 8px 8px 6px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 6px;
+      align-items: center;
+      transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    .job-card:hover {
+      border-color: rgba(56, 189, 248, 0.8);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.8);
+      background: radial-gradient(circle at 0 0, rgba(8, 47, 73, 0.95), #020617);
+    }
+
+    .job-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .job-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .job-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .job-pill {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .job-pill.priority {
+      border: 1px solid rgba(248, 250, 252, 0.25);
+      background: radial-gradient(circle at 0 0, rgba(248, 250, 252, 0.09), rgba(15, 23, 42, 0.96));
+      color: #e5e7eb;
+    }
+
+    .job-pill.done {
+      border: 1px solid rgba(45, 212, 191, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(6, 78, 59, 0.95), rgba(15, 23, 42, 0.96));
+      color: #a7f3d0;
+    }
+
+    .job-pill.pending {
+      border: 1px solid rgba(248, 113, 113, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(127, 29, 29, 0.95), rgba(15, 23, 42, 0.96));
+      color: #fecaca;
+    }
+
+    .job-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .job-actions {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .job-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), #020617);
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .job-btn:hover {
+      border-color: rgba(148, 163, 184, 1);
+      color: #e5e7eb;
+      transform: translateY(-0.5px);
+    }
+
+    .job-btn--danger {
+      border-color: rgba(248, 113, 113, 0.9);
+      color: #fecaca;
+    }
+
+    .job-btn--danger:hover {
+      background: radial-gradient(circle at 0 0, rgba(127, 29, 29, 0.95), rgba(15, 23, 42, 0.96));
+    }
+
+    .form-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .form-inline .input {
+      max-width: 180px;
+    }
+
+    .log {
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    .text-success {
+      color: #4ade80;
+    }
+
+    .badge-admin {
+      border-radius: 999px;
+      padding: 2px 7px;
+      border: 1px solid rgba(234, 179, 8, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(161, 98, 7, 0.95), rgba(15, 23, 42, 0.96));
+      color: #fef9c3;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="glow-orbit"></div>
+    <div class="inner">
+      <section class="side">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span>FastAPI Jobs · Secure Portal</span>
+        </div>
+        <div class="title-block">
+          <h1>
+            Sign in to your
+            <span>Job Control Center</span>
+          </h1>
+          <p class="title-sub">
+            A focused front-end built just for your FastAPI backend. Authenticate, manage your jobs, and peek into admin views without leaving this screen.
+          </p>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-tab-indicator"></div>
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">
+              <span>Login</span>
+            </button>
+            <button class="auth-tab" data-tab="signup">
+              <span>New account</span>
+            </button>
+          </div>
+
+          <form id="login-form" class="auth-form active">
+            <div class="field">
+              <label for="login-username">Username</label>
+              <input id="login-username" class="input" type="text" autocomplete="username" required />
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <input id="login-password" class="input" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn-primary">
+                <span>Sign in</span>
+              </button>
+              <button type="button" class="btn-ghost" id="login-test">
+                <span>Check backend</span>
+              </button>
+            </div>
+            <p class="hint">
+              Uses the `/auth/token` endpoint under the hood. Token is kept in memory only and attached as `Bearer` for all job calls.
+            </p>
+          </form>
+
+          <form id="signup-form" class="auth-form">
+            <div class="field">
+              <label for="signup-username">Username</label>
+              <input id="signup-username" class="input" type="text" autocomplete="username" required />
+            </div>
+            <div class="field">
+              <label for="signup-password">Password</label>
+              <input id="signup-password" class="input" type="password" autocomplete="new-password" required />
+              <p class="hint">
+                New users are created as standard users and persisted in your `users` table via `/auth/auth/`.
+              </p>
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn-primary">
+                <span>Create account</span>
+              </button>
+              <button type="button" class="btn-ghost" id="signup-to-login">
+                <span>Back to login</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="status-badge" id="auth-status">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div class="status-dot disconnected" id="auth-dot"></div>
+              <span>Not connected</span>
+            </div>
+            <div class="status-tags">
+              <span class="tag">No token</span>
+              <span class="tag">Backend idle</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="main">
+        <header class="main-header">
+          <div class="main-title">
+            <span>Dashboard</span>
+          </div>
+          <div class="chip" id="user-chip">
+            <span class="chip-dot"></span>
+            <span id="user-chip-label">Guest · read-only</span>
+          </div>
+        </header>
+
+        <div class="badges-row">
+          <div class="badge-soft">
+            <span>FastAPI</span>
+            <span class="muted">/auth · /user · /jobs · /admin</span>
+          </div>
+          <span class="muted">Everything on this side talks directly to your running FastAPI server.</span>
+        </div>
+
+        <div class="tab-strip">
+          <button class="active" data-panel="my-jobs">My Jobs</button>
+          <button data-panel="all-jobs">All Jobs</button>
+          <button data-panel="admin">Admin</button>
+          <button data-panel="profile">Profile</button>
+          <button data-panel="log">Raw API log</button>
+        </div>
+
+        <div class="content active" id="panel-my-jobs">
+          <div class="content-header">
+            <h3>My Jobs</h3>
+            <span class="muted">Bound to `/userjobs`, `/`, `/makeDone`, `/delete`, `/update`</span>
+          </div>
+          <div class="content-body">
+            <form id="create-job-form" class="form-inline">
+              <input class="input" id="job-title" placeholder="Job title" required />
+              <input class="input" id="job-priority" type="number" min="1" max="5" value="3" required />
+              <button type="submit" class="job-btn">
+                <span>Create job</span>
+              </button>
+              <button type="button" class="job-btn" id="refresh-my-jobs">
+                <span>Refresh</span>
+              </button>
+            </form>
+            <div id="my-jobs" class="jobs-grid">
+              <p class="muted">Sign in and hit “Refresh” to load your jobs.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="content" id="panel-all-jobs">
+          <div class="content-header">
+            <h3>All Jobs (public)</h3>
+            <span class="muted">Reads from `/` without auth</span>
+          </div>
+          <div class="content-body">
+            <button type="button" class="job-btn" id="refresh-all-jobs">
+              <span>Refresh public jobs</span>
+            </button>
+            <div id="all-jobs" class="jobs-grid" style="margin-top:6px;">
+              <p class="muted">Click refresh to see everything in the `jobs` table.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="content" id="panel-admin">
+          <div class="content-header">
+            <h3>Admin View</h3>
+            <span id="admin-status" class="muted">Requires `roles == "admin"`</span>
+          </div>
+          <div class="content-body">
+            <p class="hint" style="margin-bottom:6px;">
+              If you log in with an admin user (role `admin`), this panel uses `/admin/get_all` and `/admin/delete/{id}`.
+            </p>
+            <button type="button" class="job-btn" id="refresh-admin">
+              <span>Refresh admin jobs</span>
+            </button>
+            <div id="admin-jobs" class="jobs-grid" style="margin-top:6px;">
+              <p class="muted">No admin data loaded yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="content" id="panel-profile">
+          <div class="content-header">
+            <h3>Profile</h3>
+            <span class="muted">Uses `/user/me` and `/user/change_pass`</span>
+          </div>
+          <div class="content-body">
+            <div id="profile-info" style="margin-bottom:8px;" class="muted">
+              Not loaded yet. Sign in and click “Load profile”.
+            </div>
+            <button type="button" class="job-btn" id="load-profile">
+              <span>Load profile</span>
+            </button>
+            <hr style="border:none;border-top:1px dashed rgba(31,41,55,0.9);margin:8px 0;" />
+            <form id="change-pass-form" class="form-inline">
+              <input class="input" id="old-pass" type="password" placeholder="Old password" required />
+              <input class="input" id="new-pass" type="password" placeholder="New password" required />
+              <button type="submit" class="job-btn">
+                <span>Change password</span>
+              </button>
+            </form>
+            <div id="change-pass-status" class="hint"></div>
+          </div>
+        </div>
+
+        <div class="content" id="panel-log">
+          <div class="content-header">
+            <h3>Raw API log</h3>
+            <span class="muted">Every request / response (compact)</span>
+          </div>
+          <div class="content-body">
+            <button type="button" class="job-btn" id="clear-log">
+              <span>Clear log</span>
+            </button>
+            <div id="log" class="log" style="margin-top:6px;">
+              <span class="muted">Waiting for your first request…</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    let accessToken = null;
+    let currentUser = null;
+
+    function appendLog(message, isError = false) {
+      const log = document.getElementById("log");
+      const now = new Date().toLocaleTimeString();
+      const span = document.createElement("div");
+      span.className = isError ? "error" : "muted";
+      span.textContent = "[" + now + "] " + message;
+      log.appendChild(span);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function apiFetch(path, options = {}) {
+      const url = API_BASE + path;
+      const headers = options.headers ? { ...options.headers } : {};
+
+      if (accessToken && !options.skipAuth) {
+        headers["Authorization"] = "Bearer " + accessToken;
+      }
+
+      const bodyPreview =
+        typeof options.body === "string" && options.body.length > 0
+          ? " body=" + options.body.slice(0, 160)
+          : "";
+      appendLog("→ " + (options.method || "GET") + " " + url + bodyPreview);
+
+      const response = await fetch(url, { ...options, headers });
+      let text;
+      try {
+        text = await response.text();
+      } catch {
+        text = "";
+      }
+      const shortText = text.length > 200 ? text.slice(0, 200) + "…(truncated)" : text;
+      appendLog(
+        "← " + response.status + " " + response.statusText + " from " + path + (shortText ? " body=" + shortText : "")
+      );
+
+      let parsed;
+      try {
+        parsed = text ? JSON.parse(text) : null;
+      } catch {
+        parsed = text;
+      }
+      if (!response.ok) {
+        const err = new Error("Request failed with status " + response.status);
+        err.response = response;
+        err.body = parsed;
+        throw err;
+      }
+      return parsed;
+    }
+
+    function updateAuthUI() {
+      const dot = document.getElementById("auth-dot");
+      const status = document.getElementById("auth-status");
+      const userChip = document.getElementById("user-chip");
+      const chipLabel = document.getElementById("user-chip-label");
+      const adminStatus = document.getElementById("admin-status");
+
+      const tags = status.querySelector(".status-tags");
+      tags.innerHTML = "";
+
+      if (accessToken && currentUser) {
+        dot.classList.remove("disconnected");
+        tags.innerHTML = "";
+        const tag1 = document.createElement("span");
+        tag1.className = "tag";
+        tag1.textContent = "Token active";
+        const tag2 = document.createElement("span");
+        tag2.className = "tag";
+        tag2.textContent = "User ID " + currentUser.user_id;
+        tags.appendChild(tag1);
+        tags.appendChild(tag2);
+
+        status.querySelector("span:nth-child(2)")?.remove;
+        status.querySelector("span")?.remove;
+        status.firstElementChild.children[1].textContent =
+          "Signed in as " + currentUser.username;
+
+        chipLabel.textContent =
+          currentUser.username +
+          " · " +
+          (currentUser.roles === "admin" ? "admin" : "standard");
+
+        if (currentUser.roles === "admin") {
+          adminStatus.textContent = "Admin privileges detected · /admin endpoints unlocked";
+          adminStatus.classList.remove("error");
+          adminStatus.classList.remove("muted");
+          adminStatus.classList.add("text-success");
+          if (!userChip.querySelector(".badge-admin")) {
+            const badge = document.createElement("span");
+            badge.className = "badge-admin";
+            badge.textContent = "Admin";
+            userChip.appendChild(badge);
+          }
+        } else {
+          adminStatus.textContent = "Requires `roles == \"admin\"` (you are " + currentUser.roles + ")";
+          adminStatus.classList.remove("text-success");
+          adminStatus.classList.add("muted");
+        }
+      } else {
+        dot.classList.add("disconnected");
+        const tag1 = document.createElement("span");
+        tag1.className = "tag";
+        tag1.textContent = "No token";
+        const tag2 = document.createElement("span");
+        tag2.className = "tag";
+        tag2.textContent = "Backend idle";
+        tags.appendChild(tag1);
+        tags.appendChild(tag2);
+        status.firstElementChild.children[1].textContent = "Not connected";
+        chipLabel.textContent = "Guest · read-only";
+        adminStatus.textContent = "Requires `roles == \"admin\"`";
+        adminStatus.classList.remove("text-success");
+        adminStatus.classList.add("muted");
+        const badge = userChip.querySelector(".badge-admin");
+        if (badge) badge.remove();
+      }
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".auth-tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".auth-tab").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.getAttribute("data-tab");
+          document.querySelectorAll(".auth-form").forEach((form) => {
+            form.classList.toggle("active", form.id.startsWith(tab));
+          });
+        });
+      });
+
+      document.getElementById("signup-to-login").addEventListener("click", () => {
+        document.querySelector('.auth-tab[data-tab="login"]').click();
+      });
+
+      document.querySelectorAll(".tab-strip button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-strip button").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const panel = btn.getAttribute("data-panel");
+          document.querySelectorAll(".content").forEach((c) => {
+            c.classList.toggle("active", c.id === "panel-" + panel);
+          });
+        });
+      });
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value;
+      if (!username || !password) return;
+      try {
+        const body = new URLSearchParams();
+        body.set("username", username);
+        body.set("password", password);
+        const data = await apiFetch("/auth/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: body.toString(),
+          skipAuth: true,
+        });
+        if (!data || !data.access_token) {
+          throw new Error("No access_token in response");
+        }
+        accessToken = data.access_token;
+        appendLog("Authenticated, token stored in memory only.");
+        await loadProfile();
+        updateAuthUI();
+        await loadMyJobs();
+      } catch (err) {
+        appendLog("Login failed: " + (err.body?.detail || err.message), true);
+        alert("Login failed. Check console/log panel for details.");
+      }
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const username = document.getElementById("signup-username").value.trim();
+      const password = document.getElementById("signup-password").value;
+      if (!username || !password) return;
+      try {
+        const payload = {
+          username,
+          password,
+          is_active: true,
+          roles: "user",
+        };
+        await apiFetch("/auth/auth/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          skipAuth: true,
+        });
+        appendLog("Signup succeeded for " + username);
+        alert("Account created. You can now log in.");
+        document.querySelector('.auth-tab[data-tab="login"]').click();
+        document.getElementById("login-username").value = username;
+        document.getElementById("login-password").value = "";
+      } catch (err) {
+        appendLog("Signup failed: " + (err.body?.detail || err.message), true);
+        alert("Signup failed. Check console/log panel for details.");
+      }
+    }
+
+    async function handleBackendCheck() {
+      try {
+        const healthy = await apiFetch("/healthy", { skipAuth: true });
+        alert("Backend healthy: " + JSON.stringify(healthy));
+      } catch (err) {
+        appendLog("Health check failed: " + err.message, true);
+        alert("Health check failed. Is FastAPI running on " + API_BASE + "?");
+      }
+    }
+
+    async function loadMyJobs() {
+      const container = document.getElementById("my-jobs");
+      container.innerHTML = '<p class="muted">Loading your jobs…</p>';
+      try {
+        const data = await apiFetch("/userjobs");
+        renderJobs(container, data || [], { allowOwnerActions: true });
+      } catch (err) {
+        container.innerHTML =
+          '<p class="error">Failed to load user jobs. Are you logged in?</p>';
+      }
+    }
+
+    async function loadAllJobs() {
+      const container = document.getElementById("all-jobs");
+      container.innerHTML = '<p class="muted">Loading all jobs…</p>';
+      try {
+        const data = await apiFetch("/", { skipAuth: true });
+        renderJobs(container, data || [], { allowOwnerActions: false });
+      } catch (err) {
+        container.innerHTML =
+          '<p class="error">Failed to load jobs. Check the log panel.</p>';
+      }
+    }
+
+    async function loadAdminJobs() {
+      const container = document.getElementById("admin-jobs");
+      container.innerHTML = '<p class="muted">Loading admin jobs…</p>';
+      try {
+        const data = await apiFetch("/admin/get_all");
+        renderJobs(container, data || [], {
+          allowAdminDelete: true,
+        });
+      } catch (err) {
+        container.innerHTML =
+          '<p class="error">Failed to load admin jobs. You probably are not admin.</p>';
+      }
+    }
+
+    function renderJobs(container, jobs, options) {
+      const opts = options || {};
+      container.innerHTML = "";
+      if (!jobs || jobs.length === 0) {
+        container.innerHTML = '<p class="muted">No jobs found.</p>';
+        return;
+      }
+
+      jobs.forEach((job) => {
+        const card = document.createElement("div");
+        card.className = "job-card";
+
+        const main = document.createElement("div");
+        main.className = "job-main";
+
+        const titleRow = document.createElement("div");
+        titleRow.className = "job-title-row";
+        const title = document.createElement("div");
+        title.className = "job-title";
+        title.textContent = job.tittle || "(no title)";
+        titleRow.appendChild(title);
+
+        const priority = document.createElement("span");
+        priority.className = "job-pill priority";
+        priority.textContent = "P" + (job.priority ?? "?");
+        titleRow.appendChild(priority);
+
+        const state = document.createElement("span");
+        state.className =
+          "job-pill " + (job.completed ? "done" : "pending");
+        state.textContent = job.completed ? "Done" : "Pending";
+        titleRow.appendChild(state);
+
+        main.appendChild(titleRow);
+
+        const meta = document.createElement("div");
+        meta.className = "job-meta";
+        meta.textContent =
+          "Job #" +
+          job.job_id +
+          (job.owner_id ? " · Owner " + job.owner_id : "");
+        main.appendChild(meta);
+
+        card.appendChild(main);
+
+        const actions = document.createElement("div");
+        actions.className = "job-actions";
+
+        if (opts.allowOwnerActions) {
+          const doneBtn = document.createElement("button");
+          doneBtn.className = "job-btn";
+          doneBtn.textContent = "Mark done";
+          doneBtn.disabled = !!job.completed;
+          doneBtn.addEventListener("click", async () => {
+            try {
+              await apiFetch("/makeDone/" + job.job_id, { method: "POST" });
+              await loadMyJobs();
+            } catch (err) {
+              appendLog("Mark done failed: " + err.message, true);
+            }
+          });
+          actions.appendChild(doneBtn);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "job-btn job-btn--danger";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.addEventListener("click", async () => {
+            if (!confirm("Delete job #" + job.job_id + "?")) return;
+            try {
+              await apiFetch("/delete/" + job.job_id, { method: "DELETE" });
+              await loadMyJobs();
+            } catch (err) {
+              appendLog("Delete failed: " + err.message, true);
+            }
+          });
+          actions.appendChild(deleteBtn);
+        }
+
+        if (opts.allowAdminDelete) {
+          const adminDeleteBtn = document.createElement("button");
+          adminDeleteBtn.className = "job-btn job-btn--danger";
+          adminDeleteBtn.textContent = "Admin delete";
+          adminDeleteBtn.addEventListener("click", async () => {
+            if (!confirm("[ADMIN] Delete job #" + job.job_id + "?")) return;
+            try {
+              await apiFetch("/admin/delete/" + job.job_id, {
+                method: "DELETE",
+              });
+              await loadAdminJobs();
+            } catch (err) {
+              appendLog("Admin delete failed: " + err.message, true);
+            }
+          });
+          actions.appendChild(adminDeleteBtn);
+        }
+
+        if (opts.allowOwnerActions) {
+          const editBtn = document.createElement("button");
+          editBtn.className = "job-btn";
+          editBtn.textContent = "Quick edit";
+          editBtn.addEventListener("click", async () => {
+            const newTitle = prompt(
+              "Update title for job #" + job.job_id,
+              job.tittle || ""
+            );
+            if (newTitle === null) return;
+            const newPriority = Number(
+              prompt(
+                "Update priority (1-5) for job #" + job.job_id,
+                job.priority ?? 3
+              )
+            );
+            if (!newPriority || newPriority < 1 || newPriority > 5) {
+              alert("Priority must be between 1 and 5.");
+              return;
+            }
+            const newCompleted = confirm(
+              "Mark this job as completed? (Cancel = keep current state)"
+            )
+              ? true
+              : !!job.completed;
+            try {
+              await apiFetch("/update/" + job.job_id, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  tittle: newTitle,
+                  completed: newCompleted,
+                  priority: newPriority,
+                }),
+              });
+              await loadMyJobs();
+            } catch (err) {
+              appendLog("Update failed: " + err.message, true);
+            }
+          });
+          actions.appendChild(editBtn);
+        }
+
+        card.appendChild(actions);
+        container.appendChild(card);
+      });
+    }
+
+    async function handleCreateJob(e) {
+      e.preventDefault();
+      if (!accessToken) {
+        alert("You must be logged in to create jobs.");
+        return;
+      }
+      const title = document.getElementById("job-title").value.trim();
+      const priority = Number(
+        document.getElementById("job-priority").value || 3
+      );
+      if (!title) return;
+      if (priority < 1 || priority > 5) {
+        alert("Priority must be between 1 and 5.");
+        return;
+      }
+      try {
+        await apiFetch("/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tittle: title,
+            completed: false,
+            priority,
+          }),
+        });
+        document.getElementById("job-title").value = "";
+        await loadMyJobs();
+      } catch (err) {
+        appendLog("Create job failed: " + err.message, true);
+      }
+    }
+
+    async function loadProfile() {
+      if (!accessToken) return;
+      try {
+        const me = await apiFetch("/user/me");
+        currentUser = me;
+        const info = document.getElementById("profile-info");
+        if (!me) {
+          info.innerHTML =
+            '<span class="error">No user data returned from `/user/me`.</span>';
+        } else {
+          info.innerHTML =
+            "<div>Username: <strong>" +
+            me.username +
+            "</strong></div>" +
+            "<div>User ID: <strong>" +
+            me.user_id +
+            "</strong></div>" +
+            "<div>Role: <strong>" +
+            me.roles +
+            "</strong></div>" +
+            "<div>Active: <strong>" +
+            (me.is_active ? "yes" : "no") +
+            "</strong></div>";
+        }
+        updateAuthUI();
+      } catch (err) {
+        appendLog("Profile load failed: " + err.message, true);
+      }
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      if (!accessToken) {
+        alert("You must be logged in to change password.");
+        return;
+      }
+      const oldPass = document.getElementById("old-pass").value;
+      const newPass = document.getElementById("new-pass").value;
+      const status = document.getElementById("change-pass-status");
+      status.textContent = "";
+      try {
+        await apiFetch(
+          "/user/change_pass/" +
+            encodeURIComponent(oldPass) +
+            "/" +
+            encodeURIComponent(newPass),
+          { method: "GET" }
+        );
+        status.textContent = "Password changed successfully.";
+        status.className = "hint text-success";
+        document.getElementById("old-pass").value = "";
+        document.getElementById("new-pass").value = "";
+      } catch (err) {
+        status.textContent =
+          "Failed to change password: " + (err.body?.detail || err.message);
+        status.className = "hint error";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupTabs();
+      updateAuthUI();
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", handleLogin);
+      document
+        .getElementById("signup-form")
+        .addEventListener("submit", handleSignup);
+      document
+        .getElementById("login-test")
+        .addEventListener("click", handleBackendCheck);
+
+      document
+        .getElementById("refresh-my-jobs")
+        .addEventListener("click", loadMyJobs);
+      document
+        .getElementById("refresh-all-jobs")
+        .addEventListener("click", loadAllJobs);
+      document
+        .getElementById("refresh-admin")
+        .addEventListener("click", loadAdminJobs);
+      document
+        .getElementById("create-job-form")
+        .addEventListener("submit", handleCreateJob);
+      document
+        .getElementById("load-profile")
+        .addEventListener("click", loadProfile);
+      document
+        .getElementById("change-pass-form")
+        .addEventListener("submit", handleChangePassword);
+      document.getElementById("clear-log").addEventListener("click", () => {
+        const log = document.getElementById("log");
+        log.innerHTML =
+          '<span class="muted">Log cleared. New requests will appear here.</span>';
+      });
+    });
+  </script>
+</body>
+</html>
+
